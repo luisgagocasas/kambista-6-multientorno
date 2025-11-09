@@ -3,11 +3,6 @@ name: Build and Push Nginx Image (Multi-Entorno)
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Branch a usar para compilar"
-        required: true
-        default: "main"
-        type: string
       environment:
         description: "Entorno"
         required: true
@@ -33,8 +28,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Preparar metadata
         id: prep
@@ -55,13 +48,20 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_ENV
 
       - name: Compilar HTML con entorno/mensaje/fecha
-        working-directory: ./6. Multi-Entorno
         run: |
-          mkdir -p build
-          cp index.html build/index.html
-          sed -i "s/{{ENVIRONMENT}}/${ENVIRONMENT}/g" build/index.html
-          sed -i "s/{{MESSAGE}}/${MESSAGE}/g" build/index.html
-          sed -i "s/{{DATE}}/${DATE}/g" build/index.html
+          ROOT="${GITHUB_WORKSPACE}"
+          SRC_DIR="${ROOT}/6. Multi-Entorno"
+          BUILD_DIR="${SRC_DIR}/build"
+          if [ ! -d "${SRC_DIR}" ]; then
+            echo "ERROR: No existe el directorio '${SRC_DIR}' en la rama seleccionada." >&2
+            echo "Verifica que la carpeta '6. Multi-Entorno' esté presente en el branch ejecutado." >&2
+            exit 1
+          fi
+          mkdir -p "${BUILD_DIR}"
+          cp "${SRC_DIR}/index.html" "${BUILD_DIR}/index.html"
+          sed -i "s/{{ENVIRONMENT}}/${ENVIRONMENT}/g" "${BUILD_DIR}/index.html"
+          sed -i "s/{{MESSAGE}}/${MESSAGE}/g" "${BUILD_DIR}/index.html"
+          sed -i "s/{{DATE}}/${DATE}/g" "${BUILD_DIR}/index.html"
 
       - name: Login a GHCR
         uses: docker/login-action@v3
@@ -73,8 +73,8 @@ jobs:
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
-          context: ./6. Multi-Entorno
-          file: ./6. Multi-Entorno/Dockerfile
+          context: 6. Multi-Entorno
+          file: 6. Multi-Entorno/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.TAG }}
