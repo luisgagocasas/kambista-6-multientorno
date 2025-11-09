@@ -1,0 +1,89 @@
+name: Build and Push Nginx Image (Multi-Entorno)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch a usar para compilar"
+        required: true
+        default: "main"
+        type: string
+      environment:
+        description: "Entorno"
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      message:
+        description: "Descripción del deployment"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Preparar metadata
+        id: prep
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          MESSAGE="${{ github.event.inputs.message }}"
+          RUN_ID="${{ github.run_id }}"
+          # Si vars.DATE no está configurado, uso fecha actual en ISO 8601 UTC
+          if [ -z "${{ vars.DATE }}" ]; then
+            DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          else
+            DATE="${{ vars.DATE }}"
+          fi
+          TAG="${ENVIRONMENT}-${RUN_ID}"
+          echo "ENVIRONMENT=${ENVIRONMENT}" >> $GITHUB_ENV
+          echo "MESSAGE=${MESSAGE}" >> $GITHUB_ENV
+          echo "DATE=${DATE}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Compilar HTML con entorno/mensaje/fecha
+        working-directory: ./6. Multi-Entorno
+        run: |
+          mkdir -p build
+          cp index.html build/index.html
+          sed -i "s/{{ENVIRONMENT}}/${ENVIRONMENT}/g" build/index.html
+          sed -i "s/{{MESSAGE}}/${MESSAGE}/g" build/index.html
+          sed -i "s/{{DATE}}/${DATE}/g" build/index.html
+
+      - name: Login a GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./6. Multi-Entorno
+          file: ./6. Multi-Entorno/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ env.TAG }}
+          build-args: |
+            ENVIRONMENT=${{ env.ENVIRONMENT }}
+            DATE=${{ env.DATE }}
+            MESSAGE=${{ env.MESSAGE }}
+            REPO=${{ env.REPO }}
+
+      - name: Imprimir artefacto
+        run: |
+          echo "Imagen publicada: ghcr.io/${{ github.repository }}:${{ env.TAG }}"
