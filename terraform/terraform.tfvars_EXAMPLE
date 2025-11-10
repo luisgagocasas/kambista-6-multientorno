@@ -4,5 +4,6 @@ zone         = "us-central1-a"
 image        = "ubuntu-os-cloud/ubuntu-2204-lts"
 machine_type = "e2-medium"
 instance_name = "kanbista"
-ssh_username  = "ubuntu",
+ssh_username  = "ubuntu"
 credentials_file = "123456.json"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
