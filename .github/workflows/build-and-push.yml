@@ -141,14 +141,16 @@ jobs:
           docker pull "${IMAGE}"
           docker save -o image.tar "${IMAGE}"
 
-      - name: Copiar imagen al servidor
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ vars.SERVER }}
-          username: ubuntu
-          key: ${{ secrets.KEY_PRIVATE }}
-          source: "image.tar"
-          target: "~/deploy"
+      - name: Preparar clave SSH (runner)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KEY_PRIVATE }}" > ~/.ssh/id_rsa_deploy
+          chmod 600 ~/.ssh/id_rsa_deploy
+          ssh -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no ubuntu@"${{ env.SERVER }}" 'mkdir -p ~/deploy'
+
+      - name: Copiar imagen al servidor (scp)
+        run: |
+          scp -i ~/.ssh/id_rsa_deploy -o StrictHostKeyChecking=no image.tar ubuntu@"${{ env.SERVER }}":~/deploy/image.tar
 
       - name: Desplegar contenedor en servidor
         uses: appleboy/ssh-action@v1.0.0
