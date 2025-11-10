@@ -46,3 +46,14 @@ ssh_public_key_path = "/Users/tuusuario/.ssh/id_rsa.pub"
   - `terraform destroy -auto-approve`
 - Espera que se eliminen la instancia y las reglas de firewall. Al terminar, no habrá cargos por esos recursos.
 
+
+# Preguntas de la entrevista técnica
+
+## Flujo de funcionalidad
+- Una vez creado el VM y tener la IP publica esta se debe agregar en las variables de github actions como `SERVER`
+- Tambien se debe crear variables para las llaves publica y privada en github actions como `KEY_PUBLIC` y `KEY_PRIVATE` respectivamente
+- Para ejcutar el job de github actions Se debe seleccionar el Workflow "Build and Push Nginx Image (Multi-Entorno)" y luego presionar el boton "Run workflow" y seleccionar el entorno y rellenar el campo "Descripción del deployment" y luego presionar el boton "Run workflow"
+- Cuando el job termine de ejecutarse se le mostrara los datos para visualizar el contenido compilado con la informacion dinamica.
+
+## Nota
+- Para mejorar la seguridad las variables sensibles como KEY_PRIVATE y KEY_PUBLIC deben ser configuradas en las variables de github actions como secrets.

@@ -3,11 +3,6 @@ name: Build and Push Nginx Image (Multi-Entorno)
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Branch a usar para compilar"
-        required: true
-        default: "main"
-        type: string
       environment:
         description: "Entorno"
         required: true
@@ -33,11 +28,10 @@ jobs:
     outputs:
       tag: ${{ steps.prep.outputs.tag }}
       environment: ${{ steps.prep.outputs.environment }}
+      message: ${{ steps.prep.outputs.message }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Preparar metadata
         id: prep
@@ -58,6 +52,7 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "message=${MESSAGE}" >> $GITHUB_OUTPUT
 
       - name: Compilar HTML con entorno/mensaje/fecha
         run: |
@@ -114,6 +109,7 @@ jobs:
         run: |
           ENVIRONMENT="${{ needs.build.outputs.environment }}"
           TAG="${{ needs.build.outputs.tag }}"
+          MESSAGE="${{ needs.build.outputs.message }}"
           REPO="${{ github.repository }}"
           case "$ENVIRONMENT" in
             dev) PORT=8080 ;;
@@ -124,6 +120,7 @@ jobs:
           IMAGE="ghcr.io/${REPO}:${TAG}"
           APP_NAME="kanbista-${ENVIRONMENT}"
           echo "ENVIRONMENT=${ENVIRONMENT}" >> $GITHUB_ENV
+          echo "MESSAGE=${MESSAGE}" >> $GITHUB_ENV
           echo "PORT=${PORT}" >> $GITHUB_ENV
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
           echo "APP_NAME=${APP_NAME}" >> $GITHUB_ENV
@@ -188,6 +185,7 @@ jobs:
       - name: Publicar resumen con URL
         run: |
           echo "Entorno: ${{ env.ENVIRONMENT }}" >> $GITHUB_STEP_SUMMARY
+          echo "Mensaje: ${{ env.MESSAGE }}" >> $GITHUB_STEP_SUMMARY
           echo "Servidor: ${{ env.SERVER }}" >> $GITHUB_STEP_SUMMARY
           echo "Puerto: ${{ env.PORT }}" >> $GITHUB_STEP_SUMMARY
           echo "URL: http://${{ env.SERVER }}:${{ env.PORT }}" >> $GITHUB_STEP_SUMMARY
