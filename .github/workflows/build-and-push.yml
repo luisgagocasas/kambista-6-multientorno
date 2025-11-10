@@ -146,7 +146,7 @@ jobs:
         with:
           host: ${{ vars.SERVER }}
           username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.KEY_PRIVATE }}
           source: "image.tar"
           target: "~/deploy"
 
@@ -155,7 +155,7 @@ jobs:
         with:
           host: ${{ vars.SERVER }}
           username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.KEY_PRIVATE }}
           script: |
             set -euo pipefail
             SERVER="${{ env.SERVER }}"
