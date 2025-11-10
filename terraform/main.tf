@@ -64,7 +64,7 @@ resource "google_compute_firewall" "allow_web" {
   direction     = "INGRESS"
   allow {
     protocol = "tcp"
-    ports    = ["80", "443"]
+    ports    = ["80", "443", "8080", "8081", "8082"]
   }
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["web"]
