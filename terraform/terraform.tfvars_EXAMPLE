@@ -1,0 +1,8 @@
+project_id   = "TU_PROJECT_ID"
+region       = "us-central1"
+zone         = "us-central1-a"
+image        = "ubuntu-os-cloud/ubuntu-2204-lts"
+machine_type = "e2-medium"
+instance_name = "kanbista-proxy"
+ssh_username  = "ubuntu"
+

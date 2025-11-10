@@ -1,0 +1,8 @@
+# Terraform dynamic files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform/kambista-477721-a722ea3b15b3.json
+
